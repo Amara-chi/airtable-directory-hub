@@ -1,5 +1,7 @@
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface DirectoryHeaderProps {
   searchQuery: string;
@@ -36,6 +38,10 @@ const DirectoryHeader = ({ searchQuery, onSearchChange, totalListings }: Directo
           {totalListings} {totalListings === 1 ? "listing" : "listings"} featured
         </p>
       )}
+
+      <Button asChild className="mt-6 bg-accent hover:bg-accent/90 text-accent-foreground font-sans">
+        <Link to="/submit">Get Your Business Featured</Link>
+      </Button>
     </header>
   );
 };
