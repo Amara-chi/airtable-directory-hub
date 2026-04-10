@@ -48,16 +48,13 @@ Deno.serve(async (req) => {
 
     const fields: Record<string, any> = {
       "Business Name": String(body.businessName).slice(0, 200),
-      "Category": [String(body.category).slice(0, 100)],
+      "Category": String(body.category).slice(0, 100),
       "Location": String(body.location).slice(0, 200),
       "Business Description": String(body.description || "").slice(0, 2000),
       "Status": "Pending",
     };
 
-    // Optional fields — map to common Airtable column names
-    if (body.ownerName) fields["Owner Name"] = String(body.ownerName).slice(0, 200);
-    if (body.email) fields["Email"] = String(body.email).slice(0, 255);
-    if (body.phone) fields["Phone"] = String(body.phone).slice(0, 30);
+    // Optional fields — only include fields known to exist in Airtable
     if (body.priceRange) fields["Price Range"] = String(body.priceRange).slice(0, 50);
     if (body.website) fields["Website"] = String(body.website).slice(0, 500);
     if (body.instagram) fields["Instagram"] = String(body.instagram).slice(0, 100);
