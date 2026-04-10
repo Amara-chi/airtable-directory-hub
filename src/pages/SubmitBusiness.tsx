@@ -136,8 +136,8 @@ const SubmitBusiness = () => {
 
     setIsSubmitting(false);
 
-    if (dbError) {
-      toast.error("Something went wrong. Please try again.");
+    if (airtableError) {
+      toast.error("Submission failed. Please try again.");
       return;
     }
 
