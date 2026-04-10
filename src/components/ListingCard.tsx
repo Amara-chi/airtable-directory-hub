@@ -48,10 +48,10 @@ const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
           <span className="bg-primary/90 text-primary-foreground text-[10px] font-sans uppercase tracking-[0.15em] px-3 py-1 rounded-full backdrop-blur-sm">
             {listing.category}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-black/35 text-white text-[10px] px-2.5 py-1 backdrop-blur-sm">
+          {/* <span className="inline-flex items-center gap-1 rounded-full bg-black/35 text-white text-[10px] px-2.5 py-1 backdrop-blur-sm">
             <Star className="h-3 w-3 fill-current" />
             Featured
-          </span>
+          </span> */}
         </div>
 
         {listing.ownerHeadshot && (

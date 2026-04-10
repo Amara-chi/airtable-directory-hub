@@ -18,9 +18,6 @@ const DirectoryHeader = ({ searchQuery, onSearchChange, totalListings }: Directo
       <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-semibold text-foreground leading-tight mb-4">
         Patio Business Directory
       </h1>
-      <p className="font-editorial text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 italic">
-        A curated collection of businesses we trust, love, and proudly recommend.
-      </p>
 
       <div className="relative max-w-xl mx-auto">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />

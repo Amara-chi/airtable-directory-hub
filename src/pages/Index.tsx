@@ -51,7 +51,7 @@ const Index = () => {
   }, [listings, selectedCategory, selectedLocation, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_hsl(var(--secondary))_0%,_hsl(var(--background))_45%)] flex">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_hsl(var(--secondary))_0%,_hsl(var(--background))_1%)] flex">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -93,12 +93,12 @@ const Index = () => {
               {desktopSidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </button>
 
-            <div className="h-11 w-11 md:h-12 md:w-12 rounded-xl border border-border bg-card p-1.5 shrink-0 overflow-hidden shadow-luxury">
-              <img src="/brand-logo.png" alt="The Patieaux Chick logo" className="h-full w-full object-contain" />
+            <div className="h-11 w-11 md:h-12 md:w-12 shrink-0 overflow-hidden">
+              <img src="src/brand-logo.png.png" alt="The Patieaux Chick logo" className="h-full w-full object-contain" />
             </div>
             <div>
               <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground">
-                <span className="text-gradient-brand">The Patio Business</span> Directory
+                <span className="text-gradient-brand">The Patieaux Business</span> Directory
               </h1>
               <p className="font-editorial text-sm text-muted-foreground italic hidden sm:block">
                 Elevated vendors, curated for style, quality, and trust.
@@ -111,7 +111,7 @@ const Index = () => {
         </header>
 
         <main className="flex-1 px-6 py-8 max-w-[1500px] mx-auto w-full space-y-8">
-          <section className="rounded-3xl border border-border/70 bg-gradient-to-r from-card/90 via-secondary/70 to-card/90 p-6 md:p-9 shadow-luxury-lg relative overflow-hidden">
+          {/* <section className="rounded-3xl border border-border/70 bg-gradient-to-r from-card/90 via-secondary/70 to-card/90 p-6 md:p-9 shadow-luxury-lg relative overflow-hidden">
             <div className="absolute -top-24 -right-12 h-56 w-56 rounded-full bg-primary/20 blur-3xl" />
             <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-accent font-sans mb-3 relative">
               <Sparkles className="h-3.5 w-3.5" />
@@ -128,7 +128,7 @@ const Index = () => {
               {selectedLocation && <Badge variant="secondary">{selectedLocation}</Badge>}
               {!selectedCategory && !selectedLocation && <Badge variant="secondary">All Listings</Badge>}
             </div>
-          </section>
+          </section> */}
 
           {isLoading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">

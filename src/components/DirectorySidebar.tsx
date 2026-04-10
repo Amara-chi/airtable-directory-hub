@@ -117,7 +117,7 @@ const DirectorySidebar = ({
             </CollapsibleContent>
           </Collapsible>
 
-          <Collapsible open={locationOpen} onOpenChange={setLocationOpen}>
+          {/* <Collapsible open={locationOpen} onOpenChange={setLocationOpen}>
             <CollapsibleTrigger className="w-full flex items-center justify-between rounded-lg px-3 py-2 hover:bg-sidebar-accent/60 transition-colors">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-sidebar-foreground/60" />
@@ -158,18 +158,7 @@ const DirectorySidebar = ({
                 <p className="px-3 py-2 text-xs text-sidebar-foreground/50">No location matches</p>
               )}
             </CollapsibleContent>
-          </Collapsible>
-
-          <div className="rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-3">
-            <p className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-sidebar-primary">
-              <Sparkles className="h-3 w-3" />
-              Pro Tip
-            </p>
-            <p className="text-xs mt-2 text-sidebar-foreground/70 leading-relaxed">
-              Location now supports partial matching, so selecting “Atlanta” can include records like
-              “Atlanta Metro” and nearby neighborhood formats.
-            </p>
-          </div>
+          </Collapsible> */}
         </div>
       </ScrollArea>
 

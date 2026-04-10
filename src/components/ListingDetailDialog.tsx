@@ -20,12 +20,13 @@ const ListingDetailDialog = ({ listing, open, onOpenChange }: ListingDetailDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden border border-border/70 shadow-luxury-lg rounded-3xl bg-card/95 backdrop-blur-xl">
+      <DialogContent className="max-w-xl p-0 overflow-hidden border border-border/70 shadow-luxury-lg rounded-3xl bg-card/95 backdrop-blur-xl h-[95%]">
         <VisuallyHidden>
           <DialogTitle>{listing.businessName}</DialogTitle>
         </VisuallyHidden>
 
-        <div className="relative aspect-[16/7] overflow-hidden bg-muted">
+        {/* Hero Image Section */}
+        <div className="relative h-60 overflow-hidden bg-muted">
           {listing.businessPhoto ? (
             <img
               src={listing.businessPhoto}
@@ -40,14 +41,14 @@ const ListingDetailDialog = ({ listing, open, onOpenChange }: ListingDetailDialo
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
 
           <span className="absolute top-4 left-4 bg-primary/90 text-primary-foreground text-xs font-sans uppercase tracking-wider px-4 py-1.5 rounded-full backdrop-blur-sm">
             {listing.category}
           </span>
 
           {listing.ownerHeadshot && (
-            <div className="absolute bottom-4 right-4 w-16 h-16 rounded-full border-[3px] border-card overflow-hidden shadow-luxury">
+            <div className="absolute bottom-4 right-4 w-14 h-14 rounded-full border-[3px] border-card overflow-hidden shadow-luxury">
               <img
                 src={listing.ownerHeadshot}
                 alt={`Owner of ${listing.businessName}`}
@@ -57,95 +58,139 @@ const ListingDetailDialog = ({ listing, open, onOpenChange }: ListingDetailDialo
           )}
         </div>
 
-        <div className="p-8 space-y-6">
-          <div>
-            <h2 className="font-display text-3xl font-semibold text-foreground leading-tight">
-              {listing.businessName}
-            </h2>
-            <div className="flex flex-wrap items-center gap-4 mt-3">
-              <span className="inline-flex items-center gap-2 text-sm text-muted-foreground font-sans">
-                <MapPin className="h-4 w-4 text-accent" />
-                {listing.location}
-              </span>
-              {listing.ownerName && (
-                <span className="inline-flex items-center gap-2 text-sm text-muted-foreground font-sans">
-                  <User className="h-4 w-4 text-accent" />
-                  {listing.ownerName}
+        {/* Scrollable Content Area */}
+        <div className="max-h-[calc(85vh-16rem)] overflow-y-auto">
+          <div className="px-6 space-y-5">
+            {/* Header Section */}
+            <div className="space-y-3">
+              <h2 className="font-display text-2xl font-semibold text-foreground leading-tight">
+                {listing.businessName}
+              </h2>
+              
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-sans">
+                  <MapPin className="h-4 w-4 text-accent" />
+                  {listing.location}
                 </span>
+                {listing.ownerName && (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-sans">
+                    <User className="h-4 w-4 text-accent" />
+                    {listing.ownerName}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            {listing.description && (
+              <div className="bg-secondary/30 rounded-2xl p-4 border border-border/40">
+                <p className="text-sm text-muted-foreground font-editorial leading-relaxed italic">
+                  {listing.description}
+                </p>
+              </div>
+            )}
+
+            {/* Info Grid */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {listing.servicesOffered && (
+                <InfoBlock title="Services Offered" value={listing.servicesOffered} />
+              )}
+              {listing.priceRange && (
+                <InfoBlock title="Price Range" value={listing.priceRange} />
+              )}
+              {listing.howToContact && (
+                <InfoBlock 
+                  title="How to Contact" 
+                  value={listing.howToContact} 
+                  icon={<MessageCircle className="h-3.5 w-3.5" />} 
+                />
+              )}
+              {listing.contactDetails && (
+                <InfoBlock 
+                  title="Contact Details" 
+                  value={listing.contactDetails} 
+                  icon={<Phone className="h-3.5 w-3.5" />} 
+                />
               )}
             </div>
-          </div>
 
-          {listing.description && (
-            <p className="text-base text-muted-foreground font-editorial leading-relaxed italic">
-              {listing.description}
-            </p>
-          )}
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {listing.servicesOffered && (
-              <InfoBlock title="Services Offered" value={listing.servicesOffered} />
-            )}
-            {listing.priceRange && (
-              <InfoBlock title="Price Range" value={listing.priceRange} />
-            )}
-            {listing.howToContact && (
-              <InfoBlock title="How to Contact" value={listing.howToContact} icon={<MessageCircle className="h-4 w-4" />} />
-            )}
-            {listing.contactDetails && (
-              <InfoBlock title="Contact Details" value={listing.contactDetails} icon={<Phone className="h-4 w-4" />} />
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-border">
-            {listing.website && (
-              <a
-                href={listing.website.startsWith("http") ? listing.website : `https://${listing.website}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-sans font-medium hover:bg-primary/90 transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                Visit Website
-              </a>
-            )}
-            {instagramUrl && (
-              <a
-                href={instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border text-foreground text-sm font-sans font-medium hover:border-accent hover:text-accent transition-colors"
-              >
-                <Instagram className="h-4 w-4" />
-                Instagram
-              </a>
-            )}
-            {listing.otherSocialMedia && (
-              <a
-                href={listing.otherSocialMedia.startsWith("http") ? listing.otherSocialMedia : `https://${listing.otherSocialMedia}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border text-foreground text-sm font-sans font-medium hover:border-accent hover:text-accent transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                Other Social
-              </a>
-            )}
-            {listing.emailSelected && listing.contactDetails && (
-              <a
-                href={`mailto:${listing.contactDetails}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border text-foreground text-sm font-sans font-medium hover:border-accent hover:text-accent transition-colors"
-              >
-                <Mail className="h-4 w-4" />
-                Email
-              </a>
-            )}
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              {listing.website && (
+                <ActionButton
+                  href={listing.website.startsWith("http") ? listing.website : `https://${listing.website}`}
+                  variant="primary"
+                  icon={<ExternalLink className="h-4 w-4" />}
+                >
+                  Website
+                </ActionButton>
+              )}
+              
+              {instagramUrl && (
+                <ActionButton
+                  href={instagramUrl}
+                  variant="secondary"
+                  icon={<Instagram className="h-4 w-4" />}
+                >
+                  Instagram
+                </ActionButton>
+              )}
+              
+              {listing.otherSocialMedia && (
+                <ActionButton
+                  href={listing.otherSocialMedia.startsWith("http") ? listing.otherSocialMedia : `https://${listing.otherSocialMedia}`}
+                  variant="secondary"
+                  icon={<ExternalLink className="h-4 w-4" />}
+                >
+                  Social
+                </ActionButton>
+              )}
+              
+              {listing.emailSelected && listing.contactDetails && (
+                <ActionButton
+                  href={`mailto:${listing.contactDetails}`}
+                  variant="secondary"
+                  icon={<Mail className="h-4 w-4" />}
+                >
+                  Email
+                </ActionButton>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+
+// Extracted ActionButton component for cleaner code
+const ActionButton = ({
+  href,
+  variant,
+  icon,
+  children,
+}: {
+  href: string;
+  variant: "primary" | "secondary";
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className={`
+      inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-sans font-medium transition-all
+      ${variant === "primary" 
+        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow" 
+        : "border border-border text-foreground hover:border-accent hover:text-accent bg-background/50"
+      }
+    `}
+  >
+    {icon}
+    {children}
+  </a>
+);
 
 const InfoBlock = ({
   title,
@@ -156,10 +201,12 @@ const InfoBlock = ({
   value: string;
   icon?: React.ReactNode;
 }) => (
-  <div className="rounded-2xl border border-border/70 bg-secondary/40 px-4 py-3">
-    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground font-sans mb-1">{title}</p>
+  <div className="rounded-xl border border-border/50 bg-secondary/30 px-4 py-3 hover:border-border/80 transition-colors">
+    <p className="text-xs uppercase tracking-wider text-muted-foreground font-sans mb-1.5">
+      {title}
+    </p>
     <p className="text-sm text-foreground font-sans leading-relaxed inline-flex items-start gap-2">
-      {icon ? <span className="text-accent mt-0.5">{icon}</span> : null}
+      {icon && <span className="text-accent shrink-0 mt-0.5">{icon}</span>}
       <span>{value}</span>
     </p>
   </div>
