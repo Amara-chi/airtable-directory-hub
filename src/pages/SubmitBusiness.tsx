@@ -29,29 +29,15 @@ const SubmitBusiness = () => {
           <h2 className="font-display text-xl font-semibold text-foreground border-b border-border pb-3">
             Get Featured
           </h2>
-          <div className="overflow-hidden rounded-xl">
-            <iframe
-              className="airtable-embed"
-              src="https://airtable.com/embed/appnyHwteIfAl2Mwh/pagEaaBwPFjOUJw4O/form"
-              frameBorder="0"
-              onMouseWheel={() => undefined}
-              width="100%"
-              height="533"
-              style={{ background: "transparent", border: "1px solid #ccc" }}
-              title="Get Featured Form"
-            />
-          </div>
-          <p className="text-xs text-muted-foreground font-sans">
-            If the embedded form does not load, open it directly in a new tab.{' '}
-            <a
-              href="https://airtable.com/embed/appnyHwteIfAl2Mwh/pagEaaBwPFjOUJw4O/form"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-foreground"
-            >
-              Open Airtable form
-            </a>
-          </p>
+          <iframe
+            className="airtable-embed w-full rounded-xl"
+            src="https://airtable.com/embed/appnyHwteIfAl2Mwh/pagEaaBwPFjOUJw4O/form"
+            frameBorder="0"
+            width="100%"
+            height="533"
+            style={{ background: "transparent", border: "1px solid #ccc" }}
+            title="Get Featured Form"
+          />
         </section>
       </main>
 
