@@ -48,10 +48,8 @@ Deno.serve(async (req) => {
 
     const fields: Record<string, any> = {
       "Business Name": String(body.businessName).slice(0, 200),
-      "Category": String(body.category).slice(0, 100),
       "Location": String(body.location).slice(0, 200),
       "Business Description": String(body.description || "").slice(0, 2000),
-      "Status": "Pending",
     };
 
     // Optional fields — only include fields known to exist in Airtable
