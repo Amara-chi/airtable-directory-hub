@@ -98,7 +98,7 @@ const Index = () => {
             </div>
             <div>
               <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground">
-                <span className="text-gradient-brand">Patio Business</span> Directory
+                <span className="text-gradient-brand">The Patio Business</span> Directory
               </h1>
               <p className="font-editorial text-sm text-muted-foreground italic hidden sm:block">
                 Elevated vendors, curated for style, quality, and trust.
