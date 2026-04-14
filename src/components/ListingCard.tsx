@@ -1,6 +1,5 @@
-import { ArrowUpRight, ExternalLink, Instagram, MapPin, Star } from "lucide-react";
+import { ArrowUpRight, ExternalLink, Instagram, MapPin } from "lucide-react";
 import type { Listing } from "@/lib/airtable";
-import { useCardView, useTrackClick } from "@/hooks/use-listing-analytics";
 
 interface ListingCardProps {
   listing: Listing;
@@ -9,10 +8,6 @@ interface ListingCardProps {
 }
 
 const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
-  const cardRef = useCardView(listing.id, listing.businessName);
-  const trackWebsite = useTrackClick(listing.id, listing.businessName, "website_click");
-  const trackInstagram = useTrackClick(listing.id, listing.businessName, "instagram_click");
-
   const instagramUrl = listing.instagram
     ? listing.instagram.startsWith("http")
       ? listing.instagram
@@ -21,7 +16,6 @@ const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
 
   return (
     <article
-      ref={cardRef as React.RefObject<HTMLElement>}
       className="group bg-card/80 backdrop-blur-sm rounded-3xl overflow-hidden border border-border/60 shadow-luxury hover:shadow-luxury-lg hover:-translate-y-1.5 transition-all duration-500 opacity-0 animate-fade-in cursor-pointer"
       style={{ animationDelay: `${index * 80}ms` }}
       onClick={onClick}
@@ -48,10 +42,6 @@ const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
           <span className="bg-primary/90 text-primary-foreground text-[10px] font-sans uppercase tracking-[0.15em] px-3 py-1 rounded-full backdrop-blur-sm">
             {listing.category}
           </span>
-          {/* <span className="inline-flex items-center gap-1 rounded-full bg-black/35 text-white text-[10px] px-2.5 py-1 backdrop-blur-sm">
-            <Star className="h-3 w-3 fill-current" />
-            Featured
-          </span> */}
         </div>
 
         {listing.ownerHeadshot && (
@@ -78,7 +68,9 @@ const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
           )}
           <div className="flex items-center gap-1.5 mt-2">
             <MapPin className="h-3 w-3 text-accent" />
-            <span className="text-xs text-muted-foreground font-sans">{listing.cityAndState}{listing.country ? `, ${listing.country}` : ''}</span>
+            <span className="text-xs text-muted-foreground font-sans">
+              {listing.cityAndState}{listing.country ? `, ${listing.country}` : ""}
+            </span>
           </div>
         </div>
 
@@ -103,7 +95,7 @@ const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-sans text-foreground/70 hover:text-accent transition-colors"
-              onClick={(e) => { e.stopPropagation(); trackWebsite(); }}
+              onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="h-3 w-3" />
               Website
@@ -115,7 +107,7 @@ const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-sans text-foreground/70 hover:text-accent transition-colors"
-              onClick={(e) => { e.stopPropagation(); trackInstagram(); }}
+              onClick={(e) => e.stopPropagation()}
             >
               <Instagram className="h-3 w-3" />
               Instagram

@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import { pool } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,33 +51,6 @@ app.get("/api/listings", async (_req, res) => {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Error fetching listings:", message);
-    res.status(500).json({ error: message });
-  }
-});
-
-// ─── Track Analytics ────────────────────────────────────────────────────────
-app.post("/api/analytics", async (req, res) => {
-  try {
-    const { listing_id, listing_name, event_type } = req.body;
-
-    if (!listing_id || !event_type) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const validEvents = ["view", "website_click", "instagram_click"];
-    if (!validEvents.includes(event_type)) {
-      return res.status(400).json({ error: "Invalid event_type" });
-    }
-
-    await pool.query(
-      "INSERT INTO listing_analytics (listing_id, listing_name, event_type) VALUES ($1, $2, $3)",
-      [listing_id, listing_name || "", event_type]
-    );
-
-    res.json({ success: true });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error inserting analytics:", message);
     res.status(500).json({ error: message });
   }
 });
