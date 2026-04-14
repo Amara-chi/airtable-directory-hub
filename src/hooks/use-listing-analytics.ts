@@ -1,13 +1,15 @@
 import { useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 type EventType = "view" | "website_click" | "instagram_click";
 
 function trackEvent(listingId: string, listingName: string, eventType: EventType) {
-  supabase
-    .from("listing_analytics")
-    .insert({ listing_id: listingId, listing_name: listingName, event_type: eventType })
-    .then(); // fire-and-forget
+  fetch("/api/analytics", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ listing_id: listingId, listing_name: listingName, event_type: eventType }),
+  }).catch(() => {
+    // fire-and-forget — silently ignore network errors
+  });
 }
 
 export function useCardView(listingId: string, listingName: string) {

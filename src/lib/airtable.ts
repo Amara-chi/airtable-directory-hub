@@ -1,5 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
-
 export interface Listing {
   id: string;
   businessName: string;
@@ -51,16 +49,6 @@ function asStringOrNull(value: AirtableFieldValue): string | null {
   return parsed.length ? parsed : null;
 }
 
-function asBoolean(value: AirtableFieldValue): boolean {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "number") return value !== 0;
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    return normalized === "true" || normalized === "yes" || normalized === "1";
-  }
-  return false;
-}
-
 function extractAttachmentUrl(value: AirtableFieldValue): string | null {
   if (Array.isArray(value)) {
     const first = value[0];
@@ -69,7 +57,6 @@ function extractAttachmentUrl(value: AirtableFieldValue): string | null {
       return first.url;
     }
   }
-
   if (typeof value === "string") return value;
   return null;
 }
@@ -123,9 +110,12 @@ function parseRecord(record: unknown): Listing | null {
 }
 
 export async function fetchListings(): Promise<Listing[]> {
-  const { data, error } = await supabase.functions.invoke("fetch-listings");
-  if (error) throw error;
-
+  const response = await fetch("/api/listings");
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(err.error || `HTTP ${response.status}`);
+  }
+  const data = await response.json();
   const records = Array.isArray(data?.records) ? data.records : [];
   return records
     .map(parseRecord)
