@@ -100,7 +100,7 @@ function parseRecord(record: unknown): Listing | null {
     category: category || "Uncategorized",
     cityAndState: asString(pickField(fields, "City and State", "Location")) || "Unknown",
     country: asString(pickField(fields, "Country")) || "",
-    description: asString(pickField(fields, "Business Description", "Description")) || "",
+    description: asString(pickField(fields, "Short Bio", "Business Description", "Description")) || "",
     email: asStringOrNull(pickField(fields, "Email")),
     phone: asStringOrNull(pickField(fields, "Phone")),
     website: asStringOrNull(pickField(fields, "Website", "Website or Booking Link")),

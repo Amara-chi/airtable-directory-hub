@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import multer from "multer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,6 +10,15 @@ const app = express();
 const PORT = process.env.API_PORT || 3001;
 
 app.use(express.json());
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 }, // 8 MB
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) cb(null, true);
+    else cb(new Error("Only image files are allowed"));
+  },
+});
 
 function getRequiredEnv(name: string): string {
   const value = process.env[name];
@@ -55,8 +65,8 @@ app.get("/api/listings", async (_req, res) => {
   }
 });
 
-// ─── Submit Business Listing ─────────────────────────────────────────────────
-app.post("/api/submit-listing", async (req, res) => {
+// ─── Submit Business Listing (multipart with optional photo) ─────────────────
+app.post("/api/submit-listing", upload.single("photo"), async (req, res) => {
   try {
     const AIRTABLE_API_KEY = getRequiredEnv("AIRTABLE_API_KEY");
     const AIRTABLE_BASE_ID = getRequiredEnv("AIRTABLE_BASE_ID");
@@ -77,8 +87,6 @@ app.post("/api/submit-listing", async (req, res) => {
       return res.status(400).json({ error: "Invalid email address" });
     }
 
-    const description = [shortBio, whatOffer].filter(Boolean).join("\n\n");
-
     const fields: Record<string, string | string[]> = {
       "Full Name": String(fullName).slice(0, 200),
       "Email": String(email).slice(0, 500),
@@ -90,28 +98,59 @@ app.post("/api/submit-listing", async (req, res) => {
     };
 
     if (phone) fields["Phone"] = String(phone).slice(0, 50);
-    if (description) fields["Business Description"] = description.slice(0, 2000);
+    if (shortBio) fields["Short Bio"] = String(shortBio).slice(0, 2000);
+    if (whatOffer) fields["What Do You Offer"] = String(whatOffer).slice(0, 2000);
     if (website) fields["Website or Booking Link"] = String(website).slice(0, 500);
     if (socialMedia) fields["Social Media Link (Instagram Preferred)"] = String(socialMedia).slice(0, 200);
 
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`;
-    const response = await fetch(url, {
+    // Create the record first
+    const createUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`;
+    const createResponse = await fetch(createUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${AIRTABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ fields }),
+      body: JSON.stringify({ fields, typecast: true }),
     });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error("Airtable submit error:", errorBody);
-      throw new Error(`Airtable API error [${response.status}]: ${errorBody}`);
+    if (!createResponse.ok) {
+      const errorBody = await createResponse.text();
+      console.error("Airtable create error:", errorBody);
+      throw new Error(`Airtable API error [${createResponse.status}]: ${errorBody}`);
     }
 
-    const result = await response.json();
-    res.json({ success: true, id: result.id });
+    const result = await createResponse.json();
+    const recordId = result.id as string;
+
+    // Upload photo if provided
+    if (req.file) {
+      try {
+        const photoFormData = new FormData();
+        const blob = new Blob([req.file.buffer], { type: req.file.mimetype });
+        photoFormData.append("file", blob, req.file.originalname || "photo.jpg");
+        photoFormData.append("filename", req.file.originalname || "photo.jpg");
+        photoFormData.append("contentType", req.file.mimetype);
+
+        const photoUrl = `https://content.airtable.com/v0/${AIRTABLE_BASE_ID}/${recordId}/Headshot/uploadAttachment`;
+        const photoResponse = await fetch(photoUrl, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+          body: photoFormData,
+        });
+
+        if (!photoResponse.ok) {
+          const photoErr = await photoResponse.text();
+          console.warn("Photo upload warning (non-fatal):", photoErr);
+        } else {
+          console.log("Photo uploaded successfully for record", recordId);
+        }
+      } catch (photoErr) {
+        console.warn("Photo upload failed (non-fatal):", photoErr);
+      }
+    }
+
+    res.json({ success: true, id: recordId });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Error submitting listing:", message);

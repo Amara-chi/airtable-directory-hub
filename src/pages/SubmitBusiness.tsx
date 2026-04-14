@@ -3,17 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Upload } from "lucide-react";
 
 const CATEGORIES = [
-  "Beauty & Wellness",
-  "Coaching & Consulting",
-  "Creative Arts & Design",
-  "Events & Planning",
-  "Fashion & Apparel",
   "Food & Beverage (Curated Brands Only)",
-  "Health & Fitness",
-  "Home & Interior",
-  "Jewelry & Accessories",
-  "Photography & Videography",
-  "Tech & Digital Services",
+  "Outdoor Living & Patio Design",
+  "Wellness, Beauty & Self-Care",
   "Other (Subject to Approval)",
 ];
 
@@ -118,22 +110,23 @@ const SubmitBusiness = () => {
 
     setSubmitting(true);
     try {
+      const formData = new FormData();
+      formData.append("fullName", form.fullName);
+      formData.append("email", form.email);
+      formData.append("cityAndState", form.cityAndState);
+      formData.append("country", form.country);
+      formData.append("businessName", form.businessName);
+      formData.append("category", category);
+      if (form.phone) formData.append("phone", form.phone);
+      if (form.shortBio) formData.append("shortBio", form.shortBio);
+      if (form.whatOffer) formData.append("whatOffer", form.whatOffer);
+      if (form.website) formData.append("website", form.website);
+      if (form.socialMedia) formData.append("socialMedia", form.socialMedia);
+      if (form.photo) formData.append("photo", form.photo, form.photo.name);
+
       const res = await fetch("/api/submit-listing", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: form.fullName,
-          phone: form.phone,
-          email: form.email,
-          cityAndState: form.cityAndState,
-          country: form.country,
-          shortBio: form.shortBio,
-          category,
-          businessName: form.businessName,
-          whatOffer: form.whatOffer,
-          website: form.website,
-          socialMedia: form.socialMedia,
-        }),
+        body: formData,
       });
 
       const data = await res.json();
