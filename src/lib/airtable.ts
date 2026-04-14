@@ -117,7 +117,7 @@ function parseRecord(record: unknown): Listing | null {
     email: asStringOrNull(pickField(fields, "Email")),
     phone: asStringOrNull(pickField(fields, "Phone")),
     website: asStringOrNull(pickField(fields, "Website", "Website or Booking Link")),
-    instagram: asStringOrNull(pickField(fields, "Instagram Handle", "Instagram")),
+    instagram: asStringOrNull(pickField(fields, "Social Media Link (Instagram Preferred)", "Instagram Handle", "Instagram")),
     otherSocialMedia: asStringOrNull(pickField(fields, "Other Social Media")),
   };
 }
