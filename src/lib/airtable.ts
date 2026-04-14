@@ -3,20 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Listing {
   id: string;
   businessName: string;
-  ownerName: string;
+  fullName: string;
   businessPhoto: string | null;
   ownerHeadshot: string | null;
   category: string;
-  location: string;
+  cityAndState: string;
+  country: string;
   description: string;
-  servicesOffered: string;
-  priceRange: string;
+  email: string | null;
+  phone: string | null;
   website: string | null;
   instagram: string | null;
   otherSocialMedia: string | null;
-  howToContact: string | null;
-  contactDetails: string | null;
-  emailSelected: boolean;
 }
 
 type AirtableFieldValue = string | number | boolean | null | undefined | AirtableAttachment[] | string[];
@@ -109,20 +107,18 @@ function parseRecord(record: unknown): Listing | null {
   return {
     id,
     businessName: asString(pickField(fields, "Business Name", "Name")) || "Untitled",
-    ownerName: asString(pickField(fields, "Owner Name")),
+    fullName: asString(pickField(fields, "Full Name", "Owner Name")),
     businessPhoto: extractAttachmentUrl(pickField(fields, "Business Photo")),
     ownerHeadshot: extractAttachmentUrl(pickField(fields, "Headshot", "Owner Headshot")),
     category: category || "Uncategorized",
-    location: asString(pickField(fields, "Location")) || "Unknown",
+    cityAndState: asString(pickField(fields, "City and State", "Location")) || "Unknown",
+    country: asString(pickField(fields, "Country")) || "",
     description: asString(pickField(fields, "Business Description", "Description")) || "",
-    servicesOffered: asString(pickField(fields, "Services Offered")),
-    priceRange: asString(pickField(fields, "Price Range")),
-    website: asStringOrNull(pickField(fields, "Website")),
+    email: asStringOrNull(pickField(fields, "Email")),
+    phone: asStringOrNull(pickField(fields, "Phone")),
+    website: asStringOrNull(pickField(fields, "Website", "Website or Booking Link")),
     instagram: asStringOrNull(pickField(fields, "Instagram Handle", "Instagram")),
     otherSocialMedia: asStringOrNull(pickField(fields, "Other Social Media")),
-    howToContact: asStringOrNull(pickField(fields, "How to Contact")),
-    contactDetails: asStringOrNull(pickField(fields, "Contact Details")),
-    emailSelected: asBoolean(pickField(fields, "Email Selected")),
   };
 }
 

@@ -26,14 +26,14 @@ const Index = () => {
   });
 
   const categories = useMemo(() => [...new Set(listings.map((l) => l.category))].sort(), [listings]);
-  const locations = useMemo(() => [...new Set(listings.map((l) => l.location))].sort(), [listings]);
+  const locations = useMemo(() => [...new Set(listings.map((l) => l.cityAndState))].sort(), [listings]);
 
   const filtered = useMemo(() => {
     let result = listings;
     if (selectedCategory) result = result.filter((l) => l.category === selectedCategory);
     if (selectedLocation) {
       const selected = normalizeLocation(selectedLocation);
-      result = result.filter((l) => normalizeLocation(l.location).includes(selected));
+      result = result.filter((l) => normalizeLocation(l.cityAndState).includes(selected));
     }
 
     if (searchQuery.trim()) {
@@ -42,9 +42,8 @@ const Index = () => {
         (l) =>
           l.businessName.toLowerCase().includes(q) ||
           l.category.toLowerCase().includes(q) ||
-          l.location.toLowerCase().includes(q) ||
-          l.description.toLowerCase().includes(q) ||
-          l.servicesOffered.toLowerCase().includes(q)
+          l.cityAndState.toLowerCase().includes(q) ||
+          l.description.toLowerCase().includes(q)
       );
     }
     return result;

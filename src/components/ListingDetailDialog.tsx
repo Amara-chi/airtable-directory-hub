@@ -70,12 +70,12 @@ const ListingDetailDialog = ({ listing, open, onOpenChange }: ListingDetailDialo
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-sans">
                   <MapPin className="h-4 w-4 text-accent" />
-                  {listing.location}
+                  {listing.cityAndState}{listing.country ? `, ${listing.country}` : ''}
                 </span>
-                {listing.ownerName && (
+                {listing.fullName && (
                   <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-sans">
                     <User className="h-4 w-4 text-accent" />
-                    {listing.ownerName}
+                    {listing.fullName}
                   </span>
                 )}
               </div>
@@ -92,25 +92,11 @@ const ListingDetailDialog = ({ listing, open, onOpenChange }: ListingDetailDialo
 
             {/* Info Grid */}
             <div className="grid gap-3 sm:grid-cols-2">
-              {listing.servicesOffered && (
-                <InfoBlock title="Services Offered" value={listing.servicesOffered} />
+              {listing.phone && (
+                <InfoBlock title="Phone" value={listing.phone} icon={<Phone className="h-3.5 w-3.5" />} />
               )}
-              {listing.priceRange && (
-                <InfoBlock title="Price Range" value={listing.priceRange} />
-              )}
-              {listing.howToContact && (
-                <InfoBlock 
-                  title="How to Contact" 
-                  value={listing.howToContact} 
-                  icon={<MessageCircle className="h-3.5 w-3.5" />} 
-                />
-              )}
-              {listing.contactDetails && (
-                <InfoBlock 
-                  title="Contact Details" 
-                  value={listing.contactDetails} 
-                  icon={<Phone className="h-3.5 w-3.5" />} 
-                />
+              {listing.email && (
+                <InfoBlock title="Email" value={listing.email} icon={<Mail className="h-3.5 w-3.5" />} />
               )}
             </div>
 
@@ -146,9 +132,9 @@ const ListingDetailDialog = ({ listing, open, onOpenChange }: ListingDetailDialo
                 </ActionButton>
               )}
               
-              {listing.emailSelected && listing.contactDetails && (
+              {listing.email && (
                 <ActionButton
-                  href={`mailto:${listing.contactDetails}`}
+                  href={`mailto:${listing.email}`}
                   variant="secondary"
                   icon={<Mail className="h-4 w-4" />}
                 >

@@ -71,14 +71,14 @@ const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
           <h3 className="font-display text-xl font-semibold text-foreground leading-tight group-hover:text-accent transition-colors">
             {listing.businessName}
           </h3>
-          {listing.ownerName && (
+          {listing.fullName && (
             <p className="text-xs font-sans uppercase tracking-[0.12em] text-muted-foreground mt-1">
-              Owned by {listing.ownerName}
+              By {listing.fullName}
             </p>
           )}
           <div className="flex items-center gap-1.5 mt-2">
             <MapPin className="h-3 w-3 text-accent" />
-            <span className="text-xs text-muted-foreground font-sans">{listing.location}</span>
+            <span className="text-xs text-muted-foreground font-sans">{listing.cityAndState}{listing.country ? `, ${listing.country}` : ''}</span>
           </div>
         </div>
 
@@ -89,11 +89,7 @@ const ListingCard = ({ listing, index, onClick }: ListingCardProps) => {
         )}
 
         <div className="flex items-center justify-between">
-          {listing.priceRange ? (
-            <p className="text-xs font-sans text-accent font-semibold tracking-wide">
-              {listing.priceRange}
-            </p>
-          ) : <span />}
+          <span />
           <span className="inline-flex items-center gap-1 text-xs font-sans text-foreground/70 group-hover:text-accent transition-colors">
             Full details
             <ArrowUpRight className="h-3 w-3" />
