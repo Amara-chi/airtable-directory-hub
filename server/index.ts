@@ -83,6 +83,70 @@ app.post("/api/analytics", async (req, res) => {
   }
 });
 
+// ─── Submit Business Listing ─────────────────────────────────────────────────
+app.post("/api/submit-listing", async (req, res) => {
+  try {
+    const AIRTABLE_API_KEY = getRequiredEnv("AIRTABLE_API_KEY");
+    const AIRTABLE_BASE_ID = getRequiredEnv("AIRTABLE_BASE_ID");
+    const AIRTABLE_TABLE_ID = getRequiredEnv("AIRTABLE_TABLE_ID");
+
+    const {
+      fullName, phone, email, cityAndState, country,
+      shortBio, category, businessName, whatOffer,
+      website, socialMedia,
+    } = req.body;
+
+    if (!fullName || !email || !cityAndState || !country || !businessName || !category) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email address" });
+    }
+
+    const description = [shortBio, whatOffer].filter(Boolean).join("\n\n");
+
+    const fields: Record<string, string | string[]> = {
+      "Full Name": String(fullName).slice(0, 200),
+      "Email": String(email).slice(0, 500),
+      "City and State": String(cityAndState).slice(0, 200),
+      "Country": String(country).slice(0, 200),
+      "Business Name": String(businessName).slice(0, 200),
+      "Category": [String(category).slice(0, 100)],
+      "Status": "Pending",
+    };
+
+    if (phone) fields["Phone"] = String(phone).slice(0, 50);
+    if (description) fields["Business Description"] = description.slice(0, 2000);
+    if (website) fields["Website or Booking Link"] = String(website).slice(0, 500);
+    if (socialMedia) fields["Social Media Link (Instagram Preferred)"] = String(socialMedia).slice(0, 200);
+
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ fields }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("Airtable submit error:", errorBody);
+      throw new Error(`Airtable API error [${response.status}]: ${errorBody}`);
+    }
+
+    const result = await response.json();
+    res.json({ success: true, id: result.id });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error submitting listing:", message);
+    res.status(500).json({ error: message });
+  }
+});
+
 // ─── Serve Frontend ──────────────────────────────────────────────────────────
 const distPath = path.resolve(__dirname, "../dist");
 app.use(express.static(distPath));
