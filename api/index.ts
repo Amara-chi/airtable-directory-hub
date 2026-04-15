@@ -209,8 +209,8 @@ app.post(
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../dist');
   app.use(express.static(distPath));
-  // Use app.use('*') for catch-all (Express 5 compatible)
-  app.use('*', (_req, res) => {
+
+  app.use('/{*splat}', (_req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
