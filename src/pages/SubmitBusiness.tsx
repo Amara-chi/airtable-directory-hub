@@ -528,7 +528,7 @@ const SubmitBusiness = () => {
             className="w-full py-3 rounded-full font-semibold text-white text-sm tracking-wide transition-opacity disabled:opacity-60"
             style={{ backgroundColor: "#8b5e3c" }}
           >
-            {submitting ? "Submitting…" : "Submit Application"}
+            {submitting ? "Submitting…" : "Proceed to Payment"}
           </button>
         </form>
       </main>
