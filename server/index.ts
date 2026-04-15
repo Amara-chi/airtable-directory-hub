@@ -123,6 +123,7 @@ app.post("/api/submit-listing", upload.single("photo"), async (req, res) => {
       "Business Name": String(businessName).slice(0, 200),
       "Category": [String(category).slice(0, 100)],
       "Status": "Pending",
+      "Date Submitted": new Date().toISOString().split("T")[0],
     };
 
     if (phone) fields["Phone"] = String(phone).slice(0, 50);
