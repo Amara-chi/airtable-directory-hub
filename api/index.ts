@@ -2,19 +2,16 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// ─── Load environment variables from .env file (local development only) ───────
+// Load environment variables from .env file (local development only)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-// Optional: log whether the key was loaded (only in development)
 if (process.env.NODE_ENV !== 'production') {
   console.log('🔑 AIRTABLE_API_KEY loaded:', !!process.env.AIRTABLE_API_KEY);
 }
 
 import express from 'express';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { randomUUID } from 'crypto';
 import multer from 'multer';
 
 const app = express();
@@ -22,11 +19,7 @@ const PORT = process.env.API_PORT || 3001;
 
 app.use(express.json());
 
-// ─── Uploads folder (served publicly so Airtable can download from it) ────────
-const UPLOADS_DIR = path.resolve(__dirname, '../uploads');
-if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true });
-app.use('/uploads', express.static(UPLOADS_DIR));
-
+// ─── Multer setup (memory storage – no disk writes) ────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024 }, // 8 MB
@@ -42,12 +35,13 @@ function getRequiredEnv(name: string): string {
   return value;
 }
 
-function getPublicBase(): string {
-  const domain = process.env.REPLIT_DEV_DOMAIN;
-  if (domain) return `https://${domain}`;
-  // For Vercel deployments, use the VERCEL_URL environment variable
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${PORT}`;
+// ─── Helper: convert file buffer to Airtable attachment object ─────────────
+function fileToAttachment(file: Express.Multer.File): { url: string; filename: string } {
+  const base64 = file.buffer.toString('base64');
+  return {
+    url: `data:${file.mimetype};base64,${base64}`,
+    filename: file.originalname || 'image.jpg',
+  };
 }
 
 // ─── Fetch Listings (Airtable proxy) ────────────────────────────────────────
@@ -89,7 +83,7 @@ app.get('/api/listings', async (_req, res) => {
   }
 });
 
-// ─── Submit Business Listing (multipart with optional photo + headshot) ───────
+// ─── Submit Business Listing (uploads go directly to Airtable) ──────────────
 app.post(
   '/api/submit-listing',
   upload.fields([
@@ -128,37 +122,17 @@ app.post(
 
       const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
-      function saveFile(file: Express.Multer.File): string {
-        const ext = file.originalname?.split('.').pop() || 'jpg';
-        const filename = `${randomUUID()}.${ext}`;
-        writeFileSync(path.join(UPLOADS_DIR, filename), file.buffer);
-        return `${getPublicBase()}/uploads/${filename}`;
-      }
-
-      // Save business photo
+      // Prepare attachments for Airtable (base64 data URLs)
       let photoAttachment: { url: string; filename: string }[] | undefined;
       const photoFile = files?.['photo']?.[0];
       if (photoFile) {
-        try {
-          const publicUrl = saveFile(photoFile);
-          photoAttachment = [{ url: publicUrl, filename: photoFile.originalname || 'photo.jpg' }];
-          console.log('Photo saved, public URL:', publicUrl);
-        } catch (photoErr) {
-          console.warn('Could not save photo (non-fatal):', photoErr);
-        }
+        photoAttachment = [fileToAttachment(photoFile)];
       }
 
-      // Save headshot
       let headshotAttachment: { url: string; filename: string }[] | undefined;
       const headshotFile = files?.['headshot']?.[0];
       if (headshotFile) {
-        try {
-          const publicUrl = saveFile(headshotFile);
-          headshotAttachment = [{ url: publicUrl, filename: headshotFile.originalname || 'headshot.jpg' }];
-          console.log('Headshot saved, public URL:', publicUrl);
-        } catch (headshotErr) {
-          console.warn('Could not save headshot (non-fatal):', headshotErr);
-        }
+        headshotAttachment = [fileToAttachment(headshotFile)];
       }
 
       const fields: Record<string, unknown> = {
@@ -201,7 +175,7 @@ app.post(
       const recordId = result.id as string;
       console.log('Created Airtable record:', recordId);
 
-      // Save personal category to "Niche" field (non-fatal — field must exist in Airtable)
+      // Save personal category to "Niche" field (non-fatal)
       if (personalCategory) {
         try {
           const patchRes = await fetch(`${createUrl}/${recordId}`, {
@@ -240,8 +214,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // ─── Start server (local development) or export for Vercel ──────────────────
-// Vercel uses serverless functions; the app is exported as a module.
-// For local development, we start the server normally.
 if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

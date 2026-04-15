@@ -93,7 +93,7 @@ const Index = () => {
             </button>
 
             <div className="h-11 w-11 md:h-12 md:w-12 shrink-0 overflow-hidden">
-              <img src="src/brand-logo.png.png" alt="The Patieaux Chick logo" className="h-full w-full object-contain" />
+              <img src="/brand-logo.png.png" alt="The Patieaux Chick logo" className="h-full w-full object-contain" />
             </div>
             <div>
               <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground">
