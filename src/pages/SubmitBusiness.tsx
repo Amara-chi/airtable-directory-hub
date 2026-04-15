@@ -43,6 +43,7 @@ interface FormState {
   cityAndState: string;
   country: string;
   photo: File | null;
+  headshot: File | null;
   shortBio: string;
   businessCategory: string;
   businessName: string;
@@ -58,7 +59,9 @@ interface FormState {
 
 const SubmitBusiness = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const headshotInputRef = useRef<HTMLInputElement>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [headshotPreview, setHeadshotPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +72,7 @@ const SubmitBusiness = () => {
     cityAndState: "",
     country: "",
     photo: null,
+    headshot: null,
     shortBio: "",
     businessCategory: "",
     businessName: "",
@@ -95,6 +99,18 @@ const SubmitBusiness = () => {
       reader.readAsDataURL(file);
     } else {
       setPhotoPreview(null);
+    }
+  }
+
+  function handleHeadshotChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    set("headshot", file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setHeadshotPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setHeadshotPreview(null);
     }
   }
 
@@ -159,6 +175,7 @@ const SubmitBusiness = () => {
       if (form.website) formData.append("website", form.website);
       if (form.socialMedia) formData.append("socialMedia", form.socialMedia);
       if (form.photo) formData.append("photo", form.photo, form.photo.name);
+      if (form.headshot) formData.append("headshot", form.headshot, form.headshot.name);
 
       const res = await fetch("/api/submit-listing", {
         method: "POST",
@@ -323,6 +340,40 @@ const SubmitBusiness = () => {
               />
               <p className="text-xs text-[#7a5a3a] mt-1">
                 Please upload a clear, high-quality image that represents you.
+              </p>
+            </div>
+
+            {/* Headshot Upload */}
+            <div>
+              <label className={labelClass}>Upload Your Headshot (Profile Photo)</label>
+              <div
+                onClick={() => headshotInputRef.current?.click()}
+                className="w-full border border-[#c8a882] rounded bg-white/80 flex items-center justify-center cursor-pointer hover:bg-white transition-colors"
+                style={{ minHeight: "110px" }}
+                data-testid="upload-headshot"
+              >
+                {headshotPreview ? (
+                  <img
+                    src={headshotPreview}
+                    alt="Headshot Preview"
+                    className="h-24 w-24 object-cover rounded-full"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 py-6 text-[#9a7558]">
+                    <Upload className="h-8 w-8" />
+                    <span className="text-xs">Click to upload your headshot</span>
+                  </div>
+                )}
+              </div>
+              <input
+                ref={headshotInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleHeadshotChange}
+              />
+              <p className="text-xs text-[#7a5a3a] mt-1">
+                This appears as the small profile circle on your listing card.
               </p>
             </div>
 

@@ -8,6 +8,7 @@ export interface Listing {
   cityAndState: string;
   country: string;
   description: string;
+  servicesOffered: string | null;
   email: string | null;
   phone: string | null;
   website: string | null;
@@ -101,6 +102,7 @@ function parseRecord(record: unknown): Listing | null {
     cityAndState: asString(pickField(fields, "City and State", "Location")) || "Unknown",
     country: asString(pickField(fields, "Country")) || "",
     description: asString(pickField(fields, "Short Bio", "Business Description", "Description")) || "",
+    servicesOffered: asStringOrNull(pickField(fields, "What Do You Offer", "Services Offered", "Services", "What We Offer")),
     email: asStringOrNull(pickField(fields, "Email")),
     phone: asStringOrNull(pickField(fields, "Phone")),
     website: asStringOrNull(pickField(fields, "Website", "Website or Booking Link")),

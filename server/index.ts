@@ -78,8 +78,8 @@ app.get("/api/listings", async (_req, res) => {
   }
 });
 
-// ─── Submit Business Listing (multipart with optional photo) ─────────────────
-app.post("/api/submit-listing", upload.single("photo"), async (req, res) => {
+// ─── Submit Business Listing (multipart with optional photo + headshot) ───────
+app.post("/api/submit-listing", upload.fields([{ name: "photo", maxCount: 1 }, { name: "headshot", maxCount: 1 }]), async (req, res) => {
   try {
     const AIRTABLE_API_KEY = getRequiredEnv("AIRTABLE_API_KEY");
     const AIRTABLE_BASE_ID = getRequiredEnv("AIRTABLE_BASE_ID");
@@ -100,18 +100,38 @@ app.post("/api/submit-listing", upload.single("photo"), async (req, res) => {
       return res.status(400).json({ error: "Invalid email address" });
     }
 
-    // Save photo to disk and build a public URL for Airtable to fetch
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+
+    function saveFile(file: Express.Multer.File): string {
+      const ext = file.originalname?.split(".").pop() || "jpg";
+      const filename = `${randomUUID()}.${ext}`;
+      writeFileSync(path.join(UPLOADS_DIR, filename), file.buffer);
+      return `${getPublicBase()}/uploads/${filename}`;
+    }
+
+    // Save business photo
     let photoAttachment: { url: string; filename: string }[] | undefined;
-    if (req.file) {
+    const photoFile = files?.["photo"]?.[0];
+    if (photoFile) {
       try {
-        const ext = req.file.originalname?.split(".").pop() || "jpg";
-        const filename = `${randomUUID()}.${ext}`;
-        writeFileSync(path.join(UPLOADS_DIR, filename), req.file.buffer);
-        const publicUrl = `${getPublicBase()}/uploads/${filename}`;
-        photoAttachment = [{ url: publicUrl, filename: req.file.originalname || filename }];
+        const publicUrl = saveFile(photoFile);
+        photoAttachment = [{ url: publicUrl, filename: photoFile.originalname || "photo.jpg" }];
         console.log("Photo saved, public URL:", publicUrl);
       } catch (photoErr) {
         console.warn("Could not save photo (non-fatal):", photoErr);
+      }
+    }
+
+    // Save headshot
+    let headshotAttachment: { url: string; filename: string }[] | undefined;
+    const headshotFile = files?.["headshot"]?.[0];
+    if (headshotFile) {
+      try {
+        const publicUrl = saveFile(headshotFile);
+        headshotAttachment = [{ url: publicUrl, filename: headshotFile.originalname || "headshot.jpg" }];
+        console.log("Headshot saved, public URL:", publicUrl);
+      } catch (headshotErr) {
+        console.warn("Could not save headshot (non-fatal):", headshotErr);
       }
     }
 
@@ -132,6 +152,7 @@ app.post("/api/submit-listing", upload.single("photo"), async (req, res) => {
     if (website) fields["Website or Booking Link"] = String(website).slice(0, 500);
     if (socialMedia) fields["Social Media Link (Instagram Preferred)"] = String(socialMedia).slice(0, 200);
     if (photoAttachment) fields["Photo"] = photoAttachment;
+    if (headshotAttachment) fields["Headshot"] = headshotAttachment;
 
     const createUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`;
     const createResponse = await fetch(createUrl, {

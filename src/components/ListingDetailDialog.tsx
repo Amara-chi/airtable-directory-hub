@@ -81,11 +81,22 @@ const ListingDetailDialog = ({ listing, open, onOpenChange }: ListingDetailDialo
               </div>
             </div>
 
-            {/* Description */}
+            {/* Bio */}
             {listing.description && (
               <div className="bg-secondary/30 rounded-2xl p-4 border border-border/40">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground font-sans mb-2">About</p>
                 <p className="text-sm text-muted-foreground font-editorial leading-relaxed italic">
                   {listing.description}
+                </p>
+              </div>
+            )}
+
+            {/* Services Offered */}
+            {listing.servicesOffered && (
+              <div className="bg-secondary/30 rounded-2xl p-4 border border-border/40">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground font-sans mb-2">What We Offer</p>
+                <p className="text-sm text-foreground font-sans leading-relaxed">
+                  {listing.servicesOffered}
                 </p>
               </div>
             )}
