@@ -20,6 +20,29 @@ const PORT = process.env.API_PORT || 3001;
 
 app.use(express.json());
 
+// ─── Simple in‑memory cache ────────────────────────────────────────────────
+interface CacheEntry {
+  data: any;
+  expires: number;
+}
+
+const cache: Record<string, CacheEntry> = {};
+
+function getCached(key: string): any | null {
+  const entry = cache[key];
+  if (entry && entry.expires > Date.now()) {
+    return entry.data;
+  }
+  return null;
+}
+
+function setCached(key: string, data: any, ttlSeconds: number = 300) {
+  cache[key] = {
+    data,
+    expires: Date.now() + ttlSeconds * 1000,
+  };
+}
+
 // ─── Multer setup (memory storage – no disk writes) ────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -45,8 +68,15 @@ function fileToAttachment(file: Express.Multer.File): { url: string; filename: s
   };
 }
 
-// ─── Fetch Listings (Airtable proxy) ────────────────────────────────────────
+// ─── Fetch Listings (with caching) ────────────────────────────────────────
 app.get('/api/listings', async (_req, res) => {
+  const cacheKey = 'listings_active';
+  const cached = getCached(cacheKey);
+  if (cached) {
+    console.log('📦 Serving listings from cache');
+    return res.json(cached);
+  }
+
   try {
     const AIRTABLE_API_KEY = getRequiredEnv('AIRTABLE_API_KEY');
     const AIRTABLE_BASE_ID = getRequiredEnv('AIRTABLE_BASE_ID');
@@ -76,7 +106,9 @@ app.get('/api/listings', async (_req, res) => {
       offset = typeof data.offset === 'string' ? data.offset : undefined;
     } while (offset);
 
-    res.json({ records: allRecords });
+    const responseData = { records: allRecords };
+    setCached(cacheKey, responseData, 300); // cache for 5 minutes
+    res.json(responseData);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error fetching listings:', message);
@@ -123,7 +155,6 @@ app.post(
 
       const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
-      // Prepare attachments for Airtable (base64 data URLs)
       let photoAttachment: { url: string; filename: string }[] | undefined;
       const photoFile = files?.['photo']?.[0];
       if (photoFile) {
@@ -176,7 +207,6 @@ app.post(
       const recordId = result.id as string;
       console.log('Created Airtable record:', recordId);
 
-      // Save personal category to "Niche" field (non-fatal)
       if (personalCategory) {
         try {
           const patchRes = await fetch(`${createUrl}/${recordId}`, {
@@ -212,14 +242,12 @@ app.get('/api/get-categories', async (_req, res) => {
     const AIRTABLE_BASE_ID = getRequiredEnv('AIRTABLE_BASE_ID');
     const AIRTABLE_TABLE_ID = getRequiredEnv('AIRTABLE_TABLE_ID');
 
-    // Fetch the table metadata to get the Category field's select options
     const url = `https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`;
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
     });
 
     if (!response.ok) {
-      // If metadata fetch fails, fall back to static list
       throw new Error(`Airtable metadata error: ${response.status}`);
     }
 
@@ -231,15 +259,13 @@ app.get('/api/get-categories', async (_req, res) => {
       const categories = categoryField.options.choices.map((c: any) => c.name);
       res.json({ categories });
     } else {
-      // Fallback if field not found
       res.json({ categories: [] });
     }
   } catch (error) {
     console.warn('Could not fetch categories from Airtable, using fallback list');
-    // Return empty to let frontend use its fallback
     res.json({ categories: [] });
   }
-}); 
+});
 
 // ─── Serve Frontend (only in production) ─────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
