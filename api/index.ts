@@ -46,7 +46,7 @@ function setCached(key: string, data: any, ttlSeconds: number = 300) {
 // ─── Multer setup (memory storage – no disk writes) ────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 8 * 1024 * 1024 }, // 8 MB
+  limits: { fileSize: 4 * 1024 * 1024 }, // 4 MB
   fileFilter: (_req, file, cb) => {
     if (file.mimetype.startsWith('image/')) cb(null, true);
     else cb(new Error('Only image files are allowed'));
@@ -57,15 +57,6 @@ function getRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is not configured`);
   return value;
-}
-
-// ─── Helper: convert file buffer to Airtable attachment object ─────────────
-function fileToAttachment(file: Express.Multer.File): { url: string; filename: string } {
-  const base64 = file.buffer.toString('base64');
-  return {
-    url: `data:${file.mimetype};base64,${base64}`,
-    filename: file.originalname || 'image.jpg',
-  };
 }
 
 // ─── Fetch Listings (with caching) ────────────────────────────────────────
@@ -116,13 +107,25 @@ app.get('/api/listings', async (_req, res) => {
   }
 });
 
-// ─── Submit Business Listing (uploads go directly to Airtable) ──────────────
+// ─── Submit Business Listing (uploads via Airtable attachment endpoint) ───────
 app.post(
   '/api/submit-listing',
-  upload.fields([
-    { name: 'photo', maxCount: 1 },
-    { name: 'headshot', maxCount: 1 },
-  ]),
+  (req, res, next) => {
+    upload.fields([
+      { name: 'photo', maxCount: 1 },
+      { name: 'headshot', maxCount: 1 },
+    ])(req, res, (err: any) => {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'File too large. Maximum size is 4 MB.' });
+        }
+        return res.status(400).json({ error: err.message });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
   async (req, res) => {
     try {
       const AIRTABLE_API_KEY = getRequiredEnv('AIRTABLE_API_KEY');
@@ -155,18 +158,7 @@ app.post(
 
       const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
-      let photoAttachment: { url: string; filename: string }[] | undefined;
-      const photoFile = files?.['photo']?.[0];
-      if (photoFile) {
-        photoAttachment = [fileToAttachment(photoFile)];
-      }
-
-      let headshotAttachment: { url: string; filename: string }[] | undefined;
-      const headshotFile = files?.['headshot']?.[0];
-      if (headshotFile) {
-        headshotAttachment = [fileToAttachment(headshotFile)];
-      }
-
+      // Build fields WITHOUT attachments
       const fields: Record<string, unknown> = {
         'Full Name': String(fullName).slice(0, 200),
         Email: String(email).slice(0, 500),
@@ -184,10 +176,10 @@ app.post(
       if (website) fields['Website or Booking Link'] = String(website).slice(0, 500);
       if (socialMedia)
         fields['Social Media Link (Instagram Preferred)'] = String(socialMedia).slice(0, 200);
-      if (photoAttachment) fields['Photo'] = photoAttachment;
-      if (headshotAttachment) fields['Headshot'] = headshotAttachment;
 
       const createUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`;
+
+      // Step 1: Create the record without attachments
       const createResponse = await fetch(createUrl, {
         method: 'POST',
         headers: {
@@ -207,6 +199,39 @@ app.post(
       const recordId = result.id as string;
       console.log('Created Airtable record:', recordId);
 
+      // Step 2: Upload attachments using Airtable's upload endpoint
+      const uploadAttachment = async (file: Express.Multer.File, fieldName: string) => {
+        const uploadUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${recordId}/${fieldName}/upload`;
+        const formData = new FormData();
+        formData.append('file', new Blob([file.buffer]), file.originalname || 'image.jpg');
+
+        const uploadRes = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+          },
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const errText = await uploadRes.text();
+          console.warn(`Failed to upload ${fieldName}:`, errText);
+        } else {
+          console.log(`✅ ${fieldName} uploaded successfully`);
+        }
+      };
+
+      const photoFile = files?.['photo']?.[0];
+      if (photoFile) {
+        await uploadAttachment(photoFile, 'Photo');
+      }
+
+      const headshotFile = files?.['headshot']?.[0];
+      if (headshotFile) {
+        await uploadAttachment(headshotFile, 'Headshot');
+      }
+
+      // Save personal category to "Niche" field (non-fatal)
       if (personalCategory) {
         try {
           const patchRes = await fetch(`${createUrl}/${recordId}`, {

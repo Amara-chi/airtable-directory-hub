@@ -230,7 +230,7 @@ const SubmitBusiness = () => {
             Application Received!
           </h2>
           <p className="font-editorial text-muted-foreground italic mb-6">
-            Thank you for your submission. Please chech your email inbox for a mail with futher communication.
+            Thank you for your submission. Please checK your email inbox for a mail with futher communication.
           </p>
           <div className="flex flex-col gap-3">
             <Link
