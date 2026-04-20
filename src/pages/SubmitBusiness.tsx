@@ -229,17 +229,6 @@ const SubmitBusiness = () => {
             >
               Return to Directory
             </Link>
-            <button
-              onClick={() => {
-                setSuccess(false);
-                setForm(initialFormState);
-                setPhotoPreview(null);
-                setHeadshotPreview(null);
-              }}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Submit another business
-            </button>
           </div>
         </div>
       </div>
