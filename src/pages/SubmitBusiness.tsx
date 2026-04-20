@@ -66,6 +66,9 @@ const initialFormState: FormState = {
   ack4: false,
 };
 
+const MAX_FILE_SIZE_MB = 4;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 const SubmitBusiness = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const headshotInputRef = useRef<HTMLInputElement>(null);
@@ -75,13 +78,11 @@ const SubmitBusiness = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Category state — fetched from Airtable, falls back to static list
   const [businessCategories, setBusinessCategories] = useState<string[]>(FALLBACK_BUSINESS_CATEGORIES);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   const [form, setForm] = useState<FormState>(initialFormState);
 
-  // Fetch categories from Airtable on mount
   useEffect(() => {
     fetch("/api/get-categories")
       .then((res) => {
@@ -92,10 +93,9 @@ const SubmitBusiness = () => {
         if (Array.isArray(data.categories) && data.categories.length > 0) {
           setBusinessCategories(data.categories);
         }
-        // If the response is empty or malformed, the fallback list stays in place
       })
       .catch(() => {
-        // Silently fall back to the static list — no visible error to the user
+        // Silently fall back to the static list
       })
       .finally(() => {
         setCategoriesLoading(false);
@@ -108,6 +108,12 @@ const SubmitBusiness = () => {
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
+    if (file && file.size > MAX_FILE_SIZE_BYTES) {
+      setError(`Photo must be less than ${MAX_FILE_SIZE_MB} MB.`);
+      e.target.value = ''; // Clear the input so user can try again
+      return;
+    }
+    setError(null);
     set("photo", file);
     if (file) {
       const reader = new FileReader();
@@ -120,6 +126,12 @@ const SubmitBusiness = () => {
 
   function handleHeadshotChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
+    if (file && file.size > MAX_FILE_SIZE_BYTES) {
+      setError(`Headshot must be less than ${MAX_FILE_SIZE_MB} MB.`);
+      e.target.value = '';
+      return;
+    }
+    setError(null);
     set("headshot", file);
     if (file) {
       const reader = new FileReader();
@@ -197,7 +209,6 @@ const SubmitBusiness = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Submission failed");
 
-      // Show success message instead of redirecting
       setSuccess(true);
       setSubmitting(false);
     } catch (err: unknown) {
@@ -206,7 +217,6 @@ const SubmitBusiness = () => {
     }
   }
 
-  // Success view
   if (success) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -220,7 +230,7 @@ const SubmitBusiness = () => {
             Application Received!
           </h2>
           <p className="font-editorial text-muted-foreground italic mb-6">
-            Thank you for your submission. Please check your email for further communication.
+            Thank you for your submission. Please chech your email inbox for a mail with futher communication.
           </p>
           <div className="flex flex-col gap-3">
             <Link
@@ -235,7 +245,6 @@ const SubmitBusiness = () => {
     );
   }
 
-  // Form view
   return (
     <div className="min-h-screen bg-background">
       <header className="relative py-14 px-6 text-center border-b border-border overflow-hidden">
@@ -267,7 +276,6 @@ const SubmitBusiness = () => {
           style={{ backgroundColor: "#f5cba7" }}
           className="rounded-xl p-8 space-y-8"
         >
-          {/* ── YOUR DETAILS ── */}
           <section className="space-y-4">
             <h2 className="text-xl font-extrabold uppercase text-[#1a1008] tracking-wide border-b border-[#c8a882] pb-2">
               Your Details
@@ -346,7 +354,6 @@ const SubmitBusiness = () => {
             </div>
           </section>
 
-          {/* ── YOUR BUSINESS DETAILS ── */}
           <section className="space-y-4">
             <h2 className="text-xl font-extrabold uppercase text-[#1a1008] tracking-wide border-b border-[#c8a882] pb-2">
               Your Business Details
@@ -382,7 +389,6 @@ const SubmitBusiness = () => {
                 />
               </div>
 
-              {/* Photo Upload */}
               <div>
                 <label className={labelClass}>Upload Your Photo</label>
                 <div
@@ -412,11 +418,10 @@ const SubmitBusiness = () => {
                   onChange={handlePhotoChange}
                 />
                 <p className="text-xs text-[#7a5a3a] mt-1">
-                  Please upload a clear, high-quality image that represents you.
+                  Please upload a clear, high-quality image that represents you. Max size: {MAX_FILE_SIZE_MB} MB.
                 </p>
               </div>
 
-              {/* Business Category — fetched from Airtable */}
               <div>
                 <label className={labelClass}>
                   Select the category that best fits your business:{" "}
@@ -438,7 +443,6 @@ const SubmitBusiness = () => {
                 </select>
               </div>
 
-              {/* ── IMPORTANT NOTE ── */}
               <div
                 className="rounded-lg p-5 space-y-2"
                 style={{ backgroundColor: "#eedcc4", border: "1px solid #c8a882" }}
@@ -494,7 +498,6 @@ const SubmitBusiness = () => {
             </section>
           </section>
 
-          {/* ── REVIEW CALLOUT ── */}
           <div
             className="rounded-lg p-5 space-y-2"
             style={{ backgroundColor: "#eedcc4", border: "1px solid #c8a882" }}
@@ -505,7 +508,6 @@ const SubmitBusiness = () => {
             </p>
           </div>
 
-          {/* ── ACKNOWLEDGEMENT ── */}
           <section className="space-y-4">
             <h2 className="text-xl font-extrabold uppercase text-[#1a1008] tracking-wide border-b border-[#c8a882] pb-2">
               Acknowledgement
@@ -564,7 +566,6 @@ const SubmitBusiness = () => {
             </label>
           </section>
 
-          {/* Error */}
           {error && (
             <p
               className="text-sm text-red-700 bg-red-100 border border-red-300 rounded px-4 py-2"
@@ -574,7 +575,6 @@ const SubmitBusiness = () => {
             </p>
           )}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={submitting}
